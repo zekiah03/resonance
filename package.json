@@ -1,0 +1,13 @@
+{
+  "name": "resonance",
+  "version": "1.0.0",
+  "description": "Affective dynamics writing tool — generate and refine text through 20 emotion patterns based on the formal theory of affective dynamics.",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'No build step required (static site).'"
+  },
+  "keywords": ["writing", "ai", "emotion", "affective-dynamics", "claude"],
+  "author": "",
+  "license": "UNLICENSED"
+}

@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resonance — Affective dynamics writing tool</title>
+<meta name="description" content="20 種類の感情パターンで文章を生成・リライトできる、研究に基づくライティングツール。">
+<style>
+:root {
+  --bg: #fafaf9;
+  --bg-elev: #ffffff;
+  --bg-subtle: #f5f5f4;
+  --bg-muted: #e7e5e4;
+  --border: #e7e5e4;
+  --border-strong: #d6d3d1;
+  --text: #1c1917;
+  --text-muted: #57534e;
+  --text-faint: #a8a29e;
+  --primary: #18181b;
+  --primary-fg: #fafafa;
+  --accent: #5b21b6;
+  --accent-bg: #ede9fe;
+  --success: #15803d;
+  --success-bg: #f0fdf4;
+  --warning: #b45309;
+  --warning-bg: #fef3c7;
+  --danger: #b91c1c;
+  --danger-bg: #fef2f2;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --font-serif: ui-serif, "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
+}
+
+[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --bg-elev: #18181b;
+  --bg-subtle: #18181b;
+  --bg-muted: #27272a;
+  --border: #27272a;
+  --border-strong: #3f3f46;
+  --text: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-faint: #71717a;
+  --primary: #fafafa;
+  --primary-fg: #18181b;
+  --accent: #a78bfa;
+  --accent-bg: #2e1065;
+  --success: #86efac;
+  --success-bg: #052e16;
+  --warning: #fcd34d;
+  --warning-bg: #451a03;
+  --danger: #fca5a5;
+  --danger-bg: #450a0a;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.65;
+  font-feature-settings: "palt" 1;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+textarea, input, select {
+  font-family: inherit;
+}
+
+/* ==================== Header ==================== */
+
+.header {
+  height: 60px;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  user-select: none;
+}
+
+.brand-name {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.brand-sub {
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 150ms ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tab-btn:hover {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.tab-btn.active {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.tab-btn svg { width: 14px; height: 14px; }
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease;
+}
+
+.icon-btn:hover {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.icon-btn svg { width: 16px; height: 16px; }
+
+.pro-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--accent-bg);
+  color: var(--accent);
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* ==================== Layout ==================== */
+
+.app {
+  min-height: 100vh;
+}
+
+.tab-panel {
+  display: none;
+  padding: 32px 24px 80px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tab-panel.active {
+  display: block;
+  animation: fadeIn 200ms ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== Compose Tab ==================== */
+
+.compose-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.pattern-sidebar {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: sticky;
+  top: 76px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+
+.pattern-search {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pattern-search input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-subtle);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  transition: all 150ms ease;
+}
+
+.pattern-search input:focus {
+  background: var(--bg-elev);
+  border-color: var(--border-strong);
+}
+
+.pattern-cat {
+  padding: 12px 4px 4px;
+}
+
+.pattern-cat-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 12px 6px;
+}
+
+.pattern-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  width: calc(100% - 8px);
+  margin: 0 4px;
+  text-align: left;
+  transition: all 120ms ease;
+}
+
+.pattern-item:hover {
+  background: var(--bg-subtle);
+  color: var(--text);
+}
+
+.pattern-item.active {
+  background: var(--bg-muted);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.pattern-item .traj-tag {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-faint);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: 0.05em;
+}
+
+.pattern-item.active .traj-tag {
+  color: var(--accent);
+}
+
+.compose-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.card-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.selected-pattern-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.selected-pattern-name {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.tag-accent {
+  background: var(--accent-bg);
+  color: var(--accent);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: 0.05em;
+}
+
+.tag-muted {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+.tag-success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.pattern-description {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+textarea.input {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg-subtle);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  min-height: 100px;
+  transition: all 150ms ease;
+}
+
+textarea.input:focus {
+  background: var(--bg-elev);
+  border-color: var(--border-strong);
+}
+
+.options-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.option-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.chip-group {
+  display: inline-flex;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+}
+
+.chip {
+  padding: 5px 12px;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 120ms ease;
+}
+
+.chip:hover {
+  color: var(--text);
+}
+
+.chip.active {
+  background: var(--bg-elev);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.action-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  transition: all 150ms ease;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-fg);
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-secondary {
+  background: var(--bg-elev);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-muted);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 6px 10px;
+}
+
+.btn-ghost:hover {
+  background: var(--bg-muted);
+  color: var(--text);
+}
+
+.btn svg { width: 14px; height: 14px; }
+
+.helper-text {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* Output area */
+
+.output {
+  position: relative;
+  white-space: pre-wrap;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  font-size: 15px;
+  line-height: 1.9;
+  color: var(--text);
+  min-height: 100px;
+  font-family: var(--font-serif);
+}
+
+.output-empty {
+  color: var(--text-faint);
+  font-style: italic;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.output-toolbar {
+  display: flex;
+  gap: 4px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.profile-detail {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-top: 12px;
+  display: none;
+}
+
+.profile-detail.open { display: block; }
+
+.profile-row-mini {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.profile-row-mini:last-child { margin-bottom: 0; }
+
+.profile-row-mini .pname {
+  width: 80px;
+  color: var(--text-muted);
+}
+
+.profile-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--bg-muted);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.profile-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 100px;
+}
+
+/* ==================== Refine Tab ==================== */
+
+.refine-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.refine-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 16px 0;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.refine-controls label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+.refine-controls select {
+  padding: 6px 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text);
+}
+
+/* ==================== Library Tab ==================== */
+
+.library-header {
+  margin-bottom: 24px;
+}
+
+.library-title {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 500;
+  margin: 0 0 4px;
+}
+
+.library-sub {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+.library-filter {
+  display: flex;
+  gap: 6px;
+  margin: 16px 0 24px;
+  flex-wrap: wrap;
+}
+
+.lib-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.lib-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  cursor: pointer;
+  transition: all 200ms ease;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lib-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.lib-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.lib-card-name {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0;
+}
+
+.lib-card-cat {
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.lib-card-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+  flex: 1;
+}
+
+.lib-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* Library detail modal */
+
+.modal-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+  backdrop-filter: blur(4px);
+}
+
+.modal-bg.open {
+  display: flex;
+  animation: fadeIn 150ms ease;
+}
+
+.modal {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 32px;
+  box-shadow: var(--shadow-lg);
+  animation: scaleIn 200ms ease;
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.modal-h {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.modal-h h2 {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 500;
+  margin: 0 0 4px;
+}
+
+.modal-section {
+  margin-top: 20px;
+}
+
+.modal-section h3 {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 10px;
+}
+
+.example-card {
+  background: var(--bg-subtle);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 14px 18px;
+  margin-bottom: 8px;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--text);
+  white-space: pre-wrap;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* ==================== History Tab ==================== */
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.history-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-row {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  transition: all 150ms ease;
+  cursor: pointer;
+}
+
+.history-row:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-subtle);
+}
+
+.history-row .date {
+  font-size: 12px;
+  color: var(--text-faint);
+  font-family: ui-monospace, monospace;
+}
+
+.history-row .preview {
+  font-size: 13px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-row .pattern-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.history-empty {
+  text-align: center;
+  padding: 64px 24px;
+  color: var(--text-faint);
+  background: var(--bg-elev);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
+
+/* ==================== About Tab ==================== */
+
+.about-hero {
+  text-align: center;
+  padding: 32px 16px 48px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+
+.about-tagline {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.4;
+  margin: 0 0 12px;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.about-sub {
+  color: var(--text-muted);
+  font-size: 15px;
+  max-width: 580px;
+  margin: 0 auto;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.about-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.about-card h3 {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.about-card p {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+.link-list {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  transition: background 150ms ease;
+}
+
+.link-row:hover {
+  background: var(--bg-subtle);
+  text-decoration: none;
+}
+
+.link-row:last-child { border-bottom: none; }
+
+.link-row .lr-title {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.link-row .lr-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.link-row svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-faint);
+}
+
+.about-footer {
+  text-align: center;
+  margin-top: 64px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
+/* ==================== Modal: Settings ==================== */
+
+.settings-row {
+  margin-bottom: 20px;
+}
+
+.settings-row label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.settings-row input,
+.settings-row select {
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+}
+
+.settings-row input:focus,
+.settings-row select:focus {
+  border-color: var(--border-strong);
+  background: var(--bg-elev);
+}
+
+.settings-help {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 4px;
+}
+
+/* ==================== Toast ==================== */
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: var(--text);
+  color: var(--bg);
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 200;
+  box-shadow: var(--shadow-lg);
+}
+
+.toast.show {
+  display: flex;
+  animation: slideUp 200ms ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.toast svg { width: 14px; height: 14px; }
+
+.spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ==================== Mobile ==================== */
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 16px;
+    height: 56px;
+  }
+  .brand-sub { display: none; }
+  .tabs {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-elev);
+    border-top: 1px solid var(--border);
+    padding: 8px;
+    justify-content: space-around;
+    z-index: 50;
+  }
+  .tab-btn {
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  .tab-btn svg { width: 18px; height: 18px; }
+  .compose-grid {
+    grid-template-columns: 1fr;
+  }
+  .pattern-sidebar {
+    position: static;
+    max-height: 320px;
+  }
+  .refine-grid {
+    grid-template-columns: 1fr;
+  }
+  .tab-panel {
+    padding: 16px 16px 100px;
+  }
+  .modal { padding: 20px; }
+  .about-tagline { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand">
+    <span class="brand-name">Resonance</span>
+    <span class="brand-sub">Affective dynamics writing tool</span>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="compose">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      <span>Compose</span>
+    </button>
+    <button class="tab-btn" data-tab="refine">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      <span>Refine</span>
+    </button>
+    <button class="tab-btn" data-tab="library">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      <span>Library</span>
+    </button>
+    <button class="tab-btn" data-tab="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>History</span>
+    </button>
+    <button class="tab-btn" data-tab="about">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>About</span>
+    </button>
+  </nav>
+
+  <div class="header-actions">
+    <span class="pro-badge">PRO COMING SOON</span>
+    <button class="icon-btn" id="themeBtn" title="テーマ切替">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    </button>
+    <button class="icon-btn" id="settingsBtn" title="設定">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="app">
+
+<!-- ============= Compose Tab ============= -->
+<section class="tab-panel active" id="tab-compose">
+  <div class="compose-grid">
+    <aside class="pattern-sidebar">
+      <div class="pattern-search">
+        <input type="text" id="patternSearch" placeholder="感情を検索...">
+      </div>
+      <div id="patternList"></div>
+    </aside>
+
+    <div class="compose-main">
+      <div class="card">
+        <div class="card-h">
+          <div>
+            <div class="selected-pattern-meta">
+              <span class="selected-pattern-name" id="selectedName">笑い</span>
+              <span class="tag tag-accent" id="selectedTraj">Type I</span>
+              <span class="tag tag-muted" id="selectedComp">ΔS↑ C↑ B↑</span>
+            </div>
+            <p class="pattern-description" id="selectedDesc"></p>
+          </div>
+        </div>
+
+        <textarea class="input" id="materialInput" placeholder="素材を入力（短くてOK。AIが膨らませます）&#10;例: 終電を逃した同僚と、深夜のコンビニ前で立ち話している。"></textarea>
+
+        <div class="options-row">
+          <div class="option-group">
+            <span class="option-label">スタイル</span>
+            <div class="chip-group" id="styleChips">
+              <button class="chip active" data-val="sns">SNS</button>
+              <button class="chip" data-val="note">note</button>
+              <button class="chip" data-val="novel">小説</button>
+              <button class="chip" data-val="script">シナリオ</button>
+              <button class="chip" data-val="essay">エッセイ</button>
+            </div>
+          </div>
+          <div class="option-group">
+            <span class="option-label">字数</span>
+            <div class="chip-group" id="lengthChips">
+              <button class="chip" data-val="short">短</button>
+              <button class="chip active" data-val="medium">中</button>
+              <button class="chip" data-val="long">長</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <span class="helper-text" id="composeHelper">理論成分: <span id="composeHelperDetail">ΔS↑ C↑ B↑</span></span>
+          <button class="btn btn-primary" id="generateBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span id="generateLabel">生成する</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card" id="outputCard" style="display:none;">
+        <div class="card-h">
+          <h3 class="card-title">Output</h3>
+          <span class="tag tag-muted" id="outputMeta"></span>
+        </div>
+        <div class="output" id="outputText"></div>
+        <div class="output-toolbar">
+          <button class="btn btn-secondary" id="regenerateBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            再生成
+          </button>
+          <button class="btn btn-secondary" id="variantBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            別案
+          </button>
+          <button class="btn btn-ghost" id="copyBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            コピー
+          </button>
+          <button class="btn btn-ghost" id="favBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span id="favLabel">お気に入り</span>
+          </button>
+          <button class="btn btn-ghost" id="profileToggleBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            理論プロファイル
+          </button>
+        </div>
+        <div class="profile-detail" id="profileDetail"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============= Refine Tab ============= -->
+<section class="tab-panel" id="tab-refine">
+  <div class="card">
+    <div class="card-h">
+      <div>
+        <h3 class="card-title">Refine — 既存テキストを別の感情に書き換える</h3>
+        <p class="pattern-description">そのまま使える原稿に、別の感情の波を通します。元の事実関係や登場人物は保たれます。</p>
+      </div>
+    </div>
+
+    <div class="refine-controls">
+      <label>ターゲット感情:</label>
+      <select id="refinePattern"></select>
+      <label>強度:</label>
+      <div class="chip-group" id="refineIntensity">
+        <button class="chip" data-val="soft">弱</button>
+        <button class="chip active" data-val="standard">標準</button>
+        <button class="chip" data-val="strong">強</button>
+      </div>
+      <button class="btn btn-primary" id="refineBtn" style="margin-left:auto;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span id="refineLabel">リライトする</span>
+      </button>
+    </div>
+
+    <div class="refine-grid">
+      <div>
+        <p class="card-title" style="margin-bottom:8px;">Before</p>
+        <textarea class="input" id="refineInput" style="min-height:200px;" placeholder="リライトしたい文章を貼り付け..."></textarea>
+      </div>
+      <div>
+        <p class="card-title" style="margin-bottom:8px;">After</p>
+        <div class="output" id="refineOutput"><span class="output-empty">右側にリライト結果が表示されます</span></div>
+        <div class="output-toolbar">
+          <button class="btn btn-ghost" id="refineCopyBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            コピー
+          </button>
+          <button class="btn btn-ghost" id="refineSwapBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+            Before へ戻す
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============= Library Tab ============= -->
+<section class="tab-panel" id="tab-library">
+  <div class="library-header">
+    <h2 class="library-title">Library</h2>
+    <p class="library-sub">20 の感情パターン。それぞれが文章にどんな波形を作るか、例文と理論で見られます。</p>
+  </div>
+
+  <div class="library-filter" id="libraryFilter">
+    <button class="chip active" data-cat="all">すべて</button>
+    <button class="chip" data-cat="humor">笑い</button>
+    <button class="chip" data-cat="emotion">感動</button>
+    <button class="chip" data-cat="tension">緊張</button>
+    <button class="chip" data-cat="interaction">会話</button>
+    <button class="chip" data-cat="stable">安定</button>
+  </div>
+
+  <div class="lib-grid" id="libGrid"></div>
+</section>
+
+<!-- ============= History Tab ============= -->
+<section class="tab-panel" id="tab-history">
+  <div class="history-header">
+    <div>
+      <h2 class="library-title">History</h2>
+      <p class="library-sub" id="historyCount">0 件の生成記録</p>
+    </div>
+    <div class="history-toolbar">
+      <div class="chip-group" id="historyFilter">
+        <button class="chip active" data-filter="all">すべて</button>
+        <button class="chip" data-filter="favorite">お気に入り</button>
+        <button class="chip" data-filter="compose">生成</button>
+        <button class="chip" data-filter="refine">リライト</button>
+      </div>
+      <button class="btn btn-secondary" id="exportHistoryBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        CSV
+      </button>
+      <button class="btn btn-ghost" id="clearHistoryBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        全削除
+      </button>
+    </div>
+  </div>
+  <div id="historyList"></div>
+</section>
+
+<!-- ============= About Tab ============= -->
+<section class="tab-panel" id="tab-about">
+  <div class="about-hero">
+    <h1 class="about-tagline">"Built on a falsifiable model of emotional time structure."</h1>
+    <p class="about-sub">Resonance は、会話・笑い・物語・サスペンスといった主観経験を「心理的緊張の時間変化」として記述する研究プロジェクト「情動経験の動力学理論」に基づいて作られた、感情で書く文章ツールです。</p>
+  </div>
+
+  <div class="about-grid">
+    <div class="about-card">
+      <h3>20 種類の感情パターン</h3>
+      <p>笑い、ツッコミ、伏線回収、感動、サスペンス、心地よい沈黙など、人間が日常的に区別する 20 の主観経験を独立に扱います。</p>
+    </div>
+    <div class="about-card">
+      <h3>9 つの軌道型</h3>
+      <p>各感情は時間軸上の S(t) 軌道として整理され、9 種類の動力学的軌道型に分類されます。Library の各カードに付いている "Type I-IX" がそれです。</p>
+    </div>
+    <div class="about-card">
+      <h3>反証可能なモデル</h3>
+      <p>10 の検証可能な仮説 (H1〜H10) と中核命題反証条件 (M0) を持ち、長期的な研究プログラムとして設計されています。万能な解釈装置ではありません。</p>
+    </div>
+  </div>
+
+  <div class="link-list">
+    <a href="https://github.com/zekiah03/resonance" target="_blank" rel="noopener noreferrer" class="link-row">
+      <div>
+        <div class="lr-title">GitHub Repository</div>
+        <div class="lr-desc">ソースコード、論文、シミュレーション、すべて公開</div>
+      </div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </a>
+    <a href="https://github.com/zekiah03/resonance/blob/main/conversation_dynamics_paper.md" target="_blank" rel="noopener noreferrer" class="link-row">
+      <div>
+        <div class="lr-title">論文: 情動経験の動力学理論</div>
+        <div class="lr-desc">理論本体。動力学方程式・多次元 S・反証条件まで。</div>
+      </div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </a>
+    <a href="https://github.com/zekiah03/resonance/blob/main/formal_theory.md" target="_blank" rel="noopener noreferrer" class="link-row">
+      <div>
+        <div class="lr-title">強化版理論 (formal_theory.md)</div>
+        <div class="lr-desc">微分方程式・ベイズ拡張・神経科学的対応・反証プロトコル。</div>
+      </div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </a>
+    <a href="https://github.com/zekiah03/resonance/blob/main/simulation_report.md" target="_blank" rel="noopener noreferrer" class="link-row">
+      <div>
+        <div class="lr-title">数値シミュレーション結果</div>
+        <div class="lr-desc">9 軌道型の動力学方程式が S(t) を再現した結果。M5 完全モデルが R²=0.991 で単純モデルを上回る。</div>
+      </div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </a>
+  </div>
+
+  <div class="about-footer">
+    <p>Resonance v1.0 — 2026<br>Built with respect for both creators and the underlying theory.</p>
+  </div>
+</section>
+
+</main>
+
+<!-- ============= Modals ============= -->
+
+<div class="modal-bg" id="libDetailModal">
+  <div class="modal" id="libDetailContent"></div>
+</div>
+
+<div class="modal-bg" id="settingsModal">
+  <div class="modal">
+    <h2 style="font-family:var(--font-serif);font-weight:500;font-size:22px;margin:0 0 6px;">設定</h2>
+    <p style="color:var(--text-muted);font-size:13px;margin:0 0 20px;">API キーはあなたのブラウザにのみ保存され、サーバーには送信されません。</p>
+
+    <div class="settings-row">
+      <label for="apiKeyInput">Anthropic API Key</label>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-...">
+      <p class="settings-help">取得: <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a></p>
+    </div>
+
+    <div class="settings-row">
+      <label for="modelSelect">モデル</label>
+      <select id="modelSelect">
+        <option value="claude-sonnet-4-5">claude-sonnet-4-5（推奨・速い）</option>
+        <option value="claude-opus-4-5">claude-opus-4-5（深い・遅い）</option>
+        <option value="claude-haiku-4-5">claude-haiku-4-5（軽い）</option>
+      </select>
+    </div>
+
+    <div class="settings-row">
+      <label for="tempInput">温度（0.0–1.0）</label>
+      <input type="text" id="tempInput" value="0.9">
+      <p class="settings-help">高いほど発散的。0.7〜1.0 推奨。</p>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="cancelSettingsBtn">キャンセル</button>
+      <button class="btn btn-primary" id="saveSettingsBtn">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toastMsg">保存しました</span>
+</div>
+
+<script src="patterns.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

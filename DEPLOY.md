@@ -1,6 +1,6 @@
 # Deploy — Resonance を Vercel に公開する
 
-このドキュメントは Claude Code（CLI）から `resonance_product/` を Vercel にデプロイする手順をまとめたものです。MVP 版は静的 SPA なのでサーバ不要、ほぼ無料で公開できます。
+このドキュメントは Claude Code（CLI）から `resonance/` を Vercel にデプロイする手順をまとめたものです。MVP 版は静的 SPA なのでサーバ不要、ほぼ無料で公開できます。
 
 ## 前提
 
@@ -19,7 +19,7 @@ npm install -g vercel
 ### 2. ディレクトリへ移動
 
 ```bash
-cd resonance_product
+cd resonance
 ```
 
 ### 3. デプロイ
@@ -31,7 +31,7 @@ vercel
 初回は対話式で：
 
 ```text
-? Set up and deploy "~/resonance_product"?  Y
+? Set up and deploy "~/resonance"?          Y
 ? Which scope do you want to deploy to?     （自分のアカウント）
 ? Link to existing project?                 N
 ? What's your project's name?               resonance
@@ -56,19 +56,9 @@ Vercel ダッシュボードで `Domains` → 自前ドメインを追加 → DN
 
 ## GitHub 連携（推奨：継続デプロイ）
 
-```bash
-# 親ディレクトリで Git 初期化（既にされていればスキップ）
-git init
-git add resonance_product
-git commit -m "Resonance v1.0"
+リポジトリはすでに GitHub に公開されています：https://github.com/zekiah03/resonance
 
-# GitHub にリポジトリ作成
-gh repo create resonance --public --source=. --push
-```
-
-その後 Vercel ダッシュボードで `Add New Project` → GitHub リポジトリを選択 → `resonance_product` を Root Directory に指定。以降は `git push` するだけで自動デプロイされます。
-
-`index.html` 中の `https://github.com/[your-name]/resonance` は GitHub のユーザー名に置き換えてください（`app.js` には不要、`index.html` の About タブのみ）。
+Vercel ダッシュボードで `Add New Project` → GitHub リポジトリ `zekiah03/resonance` を選択 → Root Directory はそのまま `/`。以降は `git push` するだけで自動デプロイされます。
 
 ## Pro 化（バックエンド経由 API 構成）
 
@@ -77,7 +67,7 @@ gh repo create resonance --public --source=. --push
 ### 構成
 
 ```text
-resonance_product/
+resonance/
   index.html
   app.js              ← API 呼び出し先を /api/generate に変更
   patterns.js

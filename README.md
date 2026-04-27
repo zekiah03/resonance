@@ -7,7 +7,7 @@
 ## 構成
 
 ```text
-resonance_product/
+resonance/
   index.html        メインアプリ（SPA、5タブ）
   app.js            アプリケーションロジック
   patterns.js       20 感情パターンの定義 + 60 の例文
@@ -103,12 +103,12 @@ npx serve .
 軌道型 IX   リズム破壊                       テンポの悪さ
 ```
 
-詳細は親ディレクトリの以下のドキュメントを参照：
+詳細は GitHub リポジトリの以下のドキュメントを参照：
 
-- `conversation_dynamics_paper.md` 論文本体
-- `formal_theory.md` 動力学方程式・反証条件
-- `affective_pattern_typology.md` 20 パターンと軌道型の定義
-- `simulation_report.md` 数値シミュレーション結果
+- [`conversation_dynamics_paper.md`](https://github.com/zekiah03/resonance/blob/main/conversation_dynamics_paper.md) 論文本体
+- [`formal_theory.md`](https://github.com/zekiah03/resonance/blob/main/formal_theory.md) 動力学方程式・反証条件
+- [`affective_pattern_typology.md`](https://github.com/zekiah03/resonance/blob/main/affective_pattern_typology.md) 20 パターンと軌道型の定義
+- [`simulation_report.md`](https://github.com/zekiah03/resonance/blob/main/simulation_report.md) 数値シミュレーション結果
 
 ## ライセンス
 

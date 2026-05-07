@@ -7,7 +7,7 @@
 const state = {
   // 設定
   apiKey:      localStorage.getItem('resonance_apiKey') || '',
-  model:       localStorage.getItem('resonance_model') || 'claude-sonnet-4-5',
+  model:       localStorage.getItem('resonance_model') || 'claude-sonnet-4-6',
   temperature: parseFloat(localStorage.getItem('resonance_temp') || '0.9'),
   theme:       localStorage.getItem('resonance_theme') || 'light',
 
@@ -129,11 +129,13 @@ function buildComposePrompt(patternId, material, style, length, isVariant = fals
   const sh = STYLE_HINTS[style];
   const lh = LENGTH_HINTS[length];
 
+  const trajDetail = TRAJECTORY_DETAIL[p.trajectory] || '';
+
   const variantNote = isVariant
     ? '\n\n# 補足\n前回とは異なる表現の方向性で書く。同じ感情パターンでも、語彙・視点・場面構成を変える。'
     : '';
 
-  return `あなたは「Resonance」という、感情パターンに基づいて文章を生成するライティングツールの中核です。
+  return `あなたは「Resonance」という、情動経験の動力学理論に基づいて文章を生成するライティングツールです。
 
 # ターゲット感情パターン
 名前: ${p.name}
@@ -141,14 +143,21 @@ function buildComposePrompt(patternId, material, style, length, isVariant = fals
 理論的記述: ${p.description}
 
 # 時間構造（軌道型 ${p.trajectory}）
-${TRAJECTORIES[p.trajectory]}
-このパターンの感情は、上記の時間構造として読者に体験される必要がある。
+軌道: ${TRAJECTORIES[p.trajectory]}
+詳細: ${trajDetail}
 
-# 制約
-${p.constraint}
+このパターンの感情は、S（緊張）の時間的形状として読者に体験される。
+単に「何を感じるか」ではなく「どのように感じるか」——つまりこの時間構造——を実現することが最重要。
 
-# 表現の手がかり
+# 感情成分プロファイル
+緊張 S=${p.components.S}  予測誤差 E=${p.components.E}  意味再統合 C=${p.components.C}  良性評価 B=${p.components.B}  解放量 ΔS=${p.components.dS}
+S の内訳: 予測的=${p.s_dim.pred} 脅威的=${p.s_dim.threat} 社会的=${p.s_dim.social} 認知的=${p.s_dim.cog}
+
+# 書き手としての操作指針
 ${p.promptHints}
+
+# 制約条件
+${p.constraint}
 
 # 出力スタイル
 形式: ${sh.label}
@@ -161,11 +170,12 @@ ${p.promptHints}
 ${material}
 
 # 出力ルール
-1. 上記素材を膨らませ、ターゲット感情パターンが読者に体験される文章を作る
-2. 説明・前置き・解説・タイトル・引用記号・「」での括り出し は一切入れない。本文のみ
-3. 出力スタイルと字数を守る
-4. 出力は日本語
-5. 倫理的に問題のある内容（実在の特定個人への攻撃、差別、児童に関する性的内容、暴力の詳細描写、自傷の手段、違法行為の手順）は出力しない${variantNote}
+1. 素材を膨らませ、上記の軌道型の時間構造が読者に体験される文章を作る
+2. 感情を説明・解説しない。描写と行動と台詞で体験させる
+3. 説明・前置き・解説・タイトル・引用記号・「」での括り出しは一切入れない。本文のみ
+4. 出力スタイルと字数を守る
+5. 出力は日本語
+6. 倫理的に問題のある内容（実在の特定個人への攻撃、差別、児童に関する性的内容、暴力の詳細描写、自傷の手段、違法行為の手順）は出力しない${variantNote}
 
 # 出力（本文のみ）`;
 }
@@ -173,8 +183,9 @@ ${material}
 function buildRefinePrompt(originalText, patternId, intensity) {
   const p = PATTERNS[patternId];
   const ih = INTENSITY_HINTS[intensity];
+  const trajDetail = TRAJECTORY_DETAIL[p.trajectory] || '';
 
-  return `あなたは「Resonance」のリライト機能です。既存テキストを、指定された感情パターンに沿って書き換えます。
+  return `あなたは「Resonance」のリライト機能です。情動経験の動力学理論に基づき、既存テキストの感情的時間構造を変換します。
 
 # ターゲット感情パターン
 名前: ${p.name}
@@ -182,28 +193,38 @@ function buildRefinePrompt(originalText, patternId, intensity) {
 理論的記述: ${p.description}
 
 # 時間構造（軌道型 ${p.trajectory}）
-${TRAJECTORIES[p.trajectory]}
+軌道: ${TRAJECTORIES[p.trajectory]}
+詳細: ${trajDetail}
+
+# 感情成分プロファイル
+緊張 S=${p.components.S}  予測誤差 E=${p.components.E}  意味再統合 C=${p.components.C}  良性評価 B=${p.components.B}  解放量 ΔS=${p.components.dS}
 
 # リライト強度
 ${ih.label}: ${ih.hint}
 
+# 変換の考え方
+元テキストの「事実内容（誰が・何を・どこで・いつ）」を保ちながら、
+S(t) の時間形状——緊張の蓄積・維持・解放のタイミングと強度——をターゲットパターンに合わせて変換する。
+語彙・テンポ・余白・台詞の選び方・描写の密度がこの変換の主な道具。
+
+# 書き手としての操作指針
+${p.promptHints}
+
 # パターン固有の制約
 ${p.constraint}
-
-# 表現の手がかり
-${p.promptHints}
 
 # 元テキスト
 ${originalText}
 
 # リライトルール
 1. 元テキストの事実関係（誰が・何を・どこで・いつ）は基本的に保持する
-2. 感情の質感・テンポ・余白・語彙は、ターゲット感情パターンに沿って大胆に変える
-3. 強度に従って、変更の度合いを調整する
-4. 説明・前置き・「リライト後:」のような注釈は一切入れない。本文のみ
-5. 文字数は元テキストの ±30% 以内
-6. 出力は日本語
-7. 倫理的に問題のある内容は出力しない
+2. 感情の質感・テンポ・余白・語彙はターゲットパターンに沿って変える
+3. 感情を説明・解説しない。体験させる
+4. 強度に従って変更の度合いを調整する（弱=70%保存、標準=50%変換、強=大胆に変換）
+5. 説明・前置き・「リライト後:」のような注釈は一切入れない。本文のみ
+6. 文字数は元テキストの ±30% 以内
+7. 出力は日本語
+8. 倫理的に問題のある内容は出力しない
 
 # 出力（本文のみ）`;
 }

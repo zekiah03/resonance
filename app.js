@@ -153,7 +153,7 @@ function buildComposePrompt(patternId, material, style, length, isVariant = fals
 緊張 S=${p.components.S}  予測誤差 E=${p.components.E}  意味再統合 C=${p.components.C}  良性評価 B=${p.components.B}  解放量 ΔS=${p.components.dS}
 S の内訳: 予測的=${p.s_dim.pred} 脅威的=${p.s_dim.threat} 社会的=${p.s_dim.social} 認知的=${p.s_dim.cog}
 
-# 書き手としての操作指針
+# 書き手としての操作指针
 ${p.promptHints}
 
 # 制約条件
@@ -170,7 +170,7 @@ ${p.constraint}
 ${material}
 
 # 出力ルール
-1. 素材を膨らませ、上記の軌道型の時間構造が読者に体験される文章を作る
+1. 素材を膚らませ、上記の軌道型の時間構造が読者に体験される文章を作る
 2. 感情を説明・解説しない。描写と行動と台詞で体験させる
 3. 説明・前置き・解説・タイトル・引用記号・「」での括り出しは一切入れない。本文のみ
 4. 出力スタイルと字数を守る
@@ -207,7 +207,7 @@ ${ih.label}: ${ih.hint}
 S(t) の時間形状——緊張の蓄積・維持・解放のタイミングと強度——をターゲットパターンに合わせて変換する。
 語彙・テンポ・余白・台詞の選び方・描写の密度がこの変換の主な道具。
 
-# 書き手としての操作指針
+# 書き手としての操作指针
 ${p.promptHints}
 
 # パターン固有の制約
@@ -296,6 +296,14 @@ async function generate(isVariant = false) {
     document.getElementById('favLabel').textContent = 'お気に入り';
     document.getElementById('profileDetail').classList.remove('open');
     pushHistory(state.lastGeneration);
+    if (typeof window.contributeToTwin === 'function') {
+      window.contributeToTwin('resonance', {
+        patternId: state.selectedPattern,
+        trajectory: PATTERNS[state.selectedPattern].trajectory,
+        style: state.style,
+        length: state.length,
+      });
+    }
   } catch (e) {
     showToast(e.message);
     document.getElementById('outputCard').style.display = 'block';
@@ -406,6 +414,14 @@ async function refine() {
 
     document.getElementById('refineOutput').textContent = result;
     pushHistory(state.lastRefine);
+    if (typeof window.contributeToTwin === 'function') {
+      window.contributeToTwin('resonance', {
+        patternId: state.refinePattern,
+        trajectory: PATTERNS[state.refinePattern].trajectory,
+        intensity: state.refineIntensity,
+        type: 'refine',
+      });
+    }
   } catch (e) {
     document.getElementById('refineOutput').innerHTML =
       `<span style="color:var(--danger)">${e.message.replace(/</g, '&lt;')}</span>`;
@@ -666,7 +682,7 @@ document.getElementById('exportHistoryBtn').addEventListener('click', () => {
     ]);
   }
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""').replace(/\n/g,'\\n')}"`).join(',')).join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

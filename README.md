@@ -1,6 +1,6 @@
 # Resonance
 
-**Affective dynamics writing tool** — 20 種類の感情パターンに基づいて文章を生成・リライトできる、研究に裏付けられたライティングツール。
+**Affective dynamics writing tool** — 23 種類の感情パターンに基づいて文章を生成・リライトできる、研究に裏付けられたライティングツール。
 
 このプロダクトは「情動経験の動力学理論」（formal_theory.md）に基づいて設計されています。
 
@@ -10,7 +10,7 @@
 resonance/
   index.html        メインアプリ（SPA、5タブ）
   app.js            アプリケーションロジック
-  patterns.js       20 感情パターンの定義 + 60 の例文
+  patterns.js       23 感情パターンの定義 + 69 の例文
   vercel.json       Vercel デプロイ設定
   package.json      パッケージ情報
   README.md         このファイル
@@ -21,7 +21,7 @@ resonance/
 
 - **Compose**: 感情パターンを選んで素材から文章を生成（5 スタイル × 3 字数）
 - **Refine**: 既存テキストを別の感情パターンに書き換え（3 段階強度）
-- **Library**: 20 感情パターンの図鑑、各 3 例文、軌道型と理論プロファイル
+- **Library**: 23 感情パターンの図鑑、各 3 例文、軌道型と理論プロファイル
 - **History**: 履歴・お気に入り・CSV エクスポート
 - **About**: 理論的背景と論文・GitHub へのリンク
 - **API キー**: ユーザーの Anthropic API キーを localStorage に保存
@@ -89,7 +89,7 @@ npx serve .
 
 ## 理論的背景
 
-このツールの 20 感情パターンは、研究プロジェクト「情動経験の動力学理論」で定義された 9 軌道型に分類されています。
+このツールの 23 感情パターンは、研究プロジェクト「情動経験の動力学理論」で定義された 9 軌道型に分類されています。
 
 ```text
 軌道型 I    短期上昇 → 急下降（即時C）       笑い・ツッコミ・伏線回収・不快な冗談
@@ -107,7 +107,7 @@ npx serve .
 
 - [`conversation_dynamics_paper.md`](https://github.com/zekiah03/resonance/blob/main/conversation_dynamics_paper.md) 論文本体
 - [`formal_theory.md`](https://github.com/zekiah03/resonance/blob/main/formal_theory.md) 動力学方程式・反証条件
-- [`affective_pattern_typology.md`](https://github.com/zekiah03/resonance/blob/main/affective_pattern_typology.md) 20 パターンと軌道型の定義
+- [`affective_pattern_typology.md`](https://github.com/zekiah03/resonance/blob/main/affective_pattern_typology.md) 23 パターンと軌道型の定義
 - [`simulation_report.md`](https://github.com/zekiah03/resonance/blob/main/simulation_report.md) 数値シミュレーション結果
 
 ## ライセンス
